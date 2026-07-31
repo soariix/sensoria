@@ -1,0 +1,140 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  skinProfile  String?  @map("skin_profile")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  carts       Cart[]
+  orders      Order[]
+  quizAnswers QuizAnswer[]
+
+  @@map("users")
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String
+  slug String @unique
+
+  // Relacionamentos
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?
+  price           Decimal  @db.Decimal(10, 2)
+  stock           Int
+  categoryId      String   @map("category_id")
+  imageUrl        String   @map("image_url")
+  fragranceFamily String?  @map("fragrance_family")
+  skinTypeTarget  String?  @map("skin_type_target")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  category            Category             @relation(fields: [categoryId], references: [id])
+  cartItems           CartItem[]
+  orderItems          OrderItem[]
+  quizRecommendations QuizRecommendation[]
+
+  @@map("products")
+}
+
+model Cart {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String @id @default(uuid())
+  cartId    String @map("cart_id")
+  productId String @map("product_id")
+  quantity  Int
+
+  // Relacionamentos
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("cart_items")
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  userId        String   @map("user_id")
+  status        String   @default("PENDING")
+  total         Decimal  @db.Decimal(10, 2)
+  paymentStatus String   @map("payment_status")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  user       User        @relation(fields: [userId], references: [id])
+  orderItems OrderItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String  @map("order_id")
+  productId String  @map("product_id")
+  quantity  Int
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  // Relacionamentos
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("order_items")
+}
+
+model QuizAnswer {
+  id                  String   @id @default(uuid())
+  userId              String   @map("user_id")
+  skinType            String   @map("skin_type")
+  fragrancePreference String   @map("fragrance_preference")
+  budgetRange         String   @map("budget_range")
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  // Relacionamentos
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quizRecommendations QuizRecommendation[]
+
+  @@map("quiz_answers")
+}
+
+model QuizRecommendation {
+  id           String @id @default(uuid())
+  quizAnswerId String @map("quiz_answer_id")
+  productId    String @map("product_id")
+  score        Float
+
+  // Relacionamentos
+  quizAnswer QuizAnswer @relation(fields: [quizAnswerId], references: [id], onDelete: Cascade)
+  product    Product    @relation(fields: [productId], references: [id])
+
+  @@map("quiz_recommendations")
+}
