@@ -4,7 +4,31 @@ const router = Router();
 
 // Lista todos os Produtos
 router.get("/", async (req, res) => {
-    return res.json([]);
+    const { category, min, max } = req.query;
+
+    const products = [
+        { id: 1, name: "Perfume A", category: "Perfumes", price: 80 },
+        { id: 2, name: "Perfume B", category: "Perfumes", price: 120 },
+        { id: 3, name: "Perfume C", category: "Perfumes", price: 150 },
+        { id: 4, name: "Shampoo", category: "Shampoo", price: 200 },
+        { id: 5, name: "Condicionador", category: "Shampoo", price: 250 },
+    ];
+
+    const filtered = products.filter((product) => {
+        const matchesCategory =
+            !category || product.category === String(category);
+
+        const price = Number(product.price);
+        const minPrice = min ? Number(min) : undefined;
+        const maxPrice = max ? Number(max) : undefined;
+
+        const matchesMin = minPrice === undefined || price >= minPrice;
+        const matchesMax = maxPrice === undefined || price <= maxPrice;
+
+        return matchesCategory && matchesMin && matchesMax;
+    });
+
+    return res.json(filtered);
 });
 
 //buscar produtos por ID 
