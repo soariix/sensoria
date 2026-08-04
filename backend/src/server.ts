@@ -3,6 +3,7 @@ import productsRouter from "./routes/products";
 import categoriesRouter from "./routes/categories";
 import authRouter from "./routes/auth";
 
+
 const app = express();
 
 // Middlewares
